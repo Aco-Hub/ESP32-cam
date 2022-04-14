@@ -68,15 +68,53 @@ String httpGETRequest() {
 void setup()
 {
   Serial.begin(9600);
+  reader.setup();
+  //reader.setDebug(true);
+  Serial.println("Setup QRCode Reader");
 
+  reader.begin();
+  Serial.println("Begin QR Code reader");
 
- 
+  delay(1000);
 }
 
 void loop()
 {
+  bool connected = connectWifi();
+  if (isConnected != connected)
+  {
+    isConnected = connected;
+  }
+
+    char* shoppingInput = (char *)httpGETRequest().c_str();
+    vector<String> shoppingList;
+    // Send HTTP GET request
+    char* ptr;
+    ptr = strtok(shoppingInput, " ");
+    shoppingList.push_back(ptr);
+    while(ptr != NULL){
+        ptr = strtok(NULL, " ");
+        shoppingList.push_back(ptr);
+    }
+  if (reader.receiveQrCode(&qrCodeData, 100))
+  {
+    Serial.println("Found QRCode");
+    if (find(shoppingList.begin(),shoppingList.end(),(String)(const char *)qrCodeData.payload)!=shoppingList.end())
+    {
+      shoppingList.erase(find(shoppingList.begin(),shoppingList.end(),(String)(const char *)qrCodeData.payload));
+      Serial.print("Payload: ");
+      Serial.println((String)(const char *)qrCodeData.payload);
+
+
+    }
+    else
+    {
+      Serial.print("Invalid: ");
+      Serial.println((const char *)qrCodeData.payload);
+    }
+    
+  }  
   
-  
- Serial.println("Hello");
+
 
 }
